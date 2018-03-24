@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import tweepy
 import yaml
 import sys
@@ -24,16 +23,18 @@ def getapi():
 def follow(name) :
     if name[len(name) - 1] == ':' :
         name = name[:len(name) - 1]
-        print ("Follow: " + name)
+    print ("Follow: " + name.encode("utf-8"))
     try : 
         api.create_friendship(name) 
-    except Exception:
-        print ("Already followed !")
+        print ("Followed !")
+    except Exception as ex:
+        print ("Already followed ! ("+name.encode("utf-8")+")")
+        print (ex)
 
 def printTweetInfos(status) :
-    print(status._json['user']['screen_name'])
+    print("Name : "+status._json['user']['screen_name'].encode("utf-8"))
     #print (status.full_text)
-    print (status.retweet_count)
+    print ("RT count : "+str(status.retweet_count))
 
 def taff(searchRequest) :
     list_names = list()
@@ -44,26 +45,33 @@ def taff(searchRequest) :
             tweet=status.retweeted_status.full_text
         else:
             tweet=status.full_text
-        texte = tweet.split(' ')
-        printTweetInfos(status)
+        texte = tweet.split()
+        
         if (nbRT > 5 and hashtag.lower() != "concours" and hashtag.lower() != "#concours") \
                 or (nbRT > 1000 and (hashtag.lower() == "concours" or hashtag.lower() == "#concours")) :
+            printTweetInfos(status)
             try :
                 api.create_favorite(uid)
-            except Exception:
+                print ("Liked !")
+            except Exception as ex:
                 print ("Already liked !")
+                print (ex)
             try :
                 api.retweet(uid)
-            except Exception:
+                print ("RT !")
+            except Exception as ex:
                 print ("Already RT !")
-        if nbRT > 1000 :
+                print (ex)
+            print("First name : "+status._json['user']['screen_name'].encode("utf-8"))
             follow(status._json['user']['screen_name']) 
             for names in texte:
                 if names and names[0] and names[0] == '@':
+                    print("Names :"+names.encode("utf-8"))
+                    print("Next names : "+names[1:].encode("utf-8"))
                     follow(names[1:])
         del list_names[:]
         print("################################################################")
-        ####### ACTIVER APRES PHASE TEST #######
+        
         time.sleep(random.randrange(2, 10, 1))
 
 if __name__ == "__main__":
